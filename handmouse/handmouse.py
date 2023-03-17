@@ -1,3 +1,5 @@
+from typing import Mapping
+from mediapipe.python.solutions.drawing_utils import DrawingSpec, GREEN_COLOR, RED_COLOR
 import cv2
 import mediapipe as mp
 import time
@@ -5,6 +7,15 @@ import winsound
 import numpy as np
 import pyaudio
 import pyautogui
+
+def make_landmark_drawing_spec(indexs: set[int], len: int) -> Mapping[int, DrawingSpec]:
+    dic = {}
+    for i in range(len):
+        if i in indexs:
+            dic[i] = DrawingSpec(GREEN_COLOR)
+        else:
+            dic[i] = DrawingSpec(RED_COLOR)
+    return dic
 
 def main():
     def getNearestValue(list, num):
@@ -71,6 +82,9 @@ def main():
                 mp_draw.draw_landmarks(img, handLms)
                 # print(get_pos(handLms)[0], ", ", get_pos(handLms)[1])
                 dist = np.linalg.norm(to_numpy(handLms.landmark[4]) - to_numpy(handLms.landmark[8]))
+                length = len(handLms.landmark)
+                indexs = set([4, 8])
+                mp_draw.draw_landmarks(img, handLms, landmark_drawing_spec=make_landmark_drawing_spec(indexs, length))
                 if pos is None or np.linalg.norm(get_pos(handLms) - pos) < 1:
                     # print("new_pos")
                     new_pos = get_pos(handLms)
@@ -83,19 +97,19 @@ def main():
                     # pyautogui.moveTo((1 - new_pos[0]) * 2200, new_pos[1] * 1000 - 200)
                 # pyautogui.moveTo((1 - new_pos[0]) * 2200, (1 - new_pos[1]) * 1000 - 200)
                     print(is_clicking)
-                    if not is_click(handLms):
-                        is_clicking = False
-                    elif is_clicking == False and is_click(handLms):
-                        is_clicking = True
-
-                    # if is_click(handLms) and is_clicking == False:
-                    #     is_clicking = True
-                    #     count += 1
-                    #     # pyautogui.click()
-                    #     # print("click", count)
-                    # else:
+                    # if not is_click(handLms):
                     #     is_clicking = False
-                    #     # print("not click", count)
+                    # elif is_clicking == False and is_click(handLms):
+                    #     is_clicking = True
+
+                    if is_click(handLms) and is_clicking == False:
+                        is_clicking = True
+                        count += 1
+                        # pyautogui.click()
+                        # print("click", count)
+                    else:
+                        is_clicking = False
+                        # print("not click", count)
                     
                     pos = new_pos
                 
